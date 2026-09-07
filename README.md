@@ -69,3 +69,48 @@ Starting from a default reset seed of `8'h01`, the module steps through a maxima
 * **Maximal Period:** Full 255-cycle PRBS repeat period ($2^N - 1$).
 * **High-Speed Galois Topology:** Inline XOR gates eliminate deep tree delays on feedback lines.
 * **Zero-Lockup Safe:** Synchronous reset guarantees boot into a valid non-zero seed state (`8'h01`).
+
+# Tap-Out Values vs. PRBS Bit
+
+## Overview
+
+In Linear Feedback Shift Register (LFSR) designs, a common point of confusion is the difference between **tap-out values** and the **PRBS bit output**. 
+
+While both originate from internal register bits, they serve completely different roles in hardware: tap-out values drive internal feedback logic, while the PRBS bit is exported for external system use.
+
+---
+
+## 1. Core Distinction
+
+### Tap-Out Values (Internal Logic Drivers)
+* **What They Are:** Specific intermediate register indices (e.g., bits 6, 5, and 4 for $x^8 + x^6 + x^5 + x^4 + 1$) selected strictly by the primitive polynomial to drive XOR feedback inputs.
+* **Function:** They serve as internal feedback tap points that scramble and shift data across the register chain to prevent premature repetition. They exist purely to define state transition update logic.
+* **Scope:** Internal module signals (not required on top-level ports).
+
+### PRBS Bit (External Serial Output)
+* **What It Is:** The actual single-bit output stream exported to external hardware or testbenches.
+* **Function:** Provides the generated pseudo-random sequence to outside systems for Bit Error Rate Testing (BERT), built-in self-test (BIST), or payload scrambling.
+* **Scope:** Primary module output port (`output wire prbs_bit`).
+
+---
+
+## 2. Is `prbs_bit` Required to be `lfsr[7]`?
+
+**No, it is not mandatory.**
+
+Because a maximal-length LFSR cycles through all $2^N - 1$ non-zero states, **every single bit index in the register generates a valid maximal-length PRBS bitstream**.
+
+### Common Design Conventions
+* **Interface Standards:** Designers typically select the MSB (`lfsr[7]`) or LSB (`lfsr[0]`) simply to establish a consistent, predictable port interface contract.
+* **Phase Shift Across Bits:** Tapping `prbs_bit = lfsr[3]` yields the exact same pseudo-random sequence as `lfsr[7]`, shifted/delayed by 4 clock cycles in time.
+
+---
+
+## Feature Comparison Matrix
+
+| Feature | Tap-Out Values | PRBS Bit |
+| :--- | :--- | :--- |
+| **Primary Role** | Intermediate registers connected to XOR gates. | System-level single-bit output stream. |
+| **Selection Criteria** | Fixed strictly by the mathematical polynomial ($x^8 + x^6 + x^5 + x^4 + 1$). | Arbitrary choice by the designer (any index from `0` to `7`). |
+| **Visibility** | Internal to the module logic. | Primary output interface port. |
+| **Phase Relationship** | Dictates transition dynamics. | Time-shifted copy of any other register bit. |
