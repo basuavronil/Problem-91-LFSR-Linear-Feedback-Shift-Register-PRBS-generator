@@ -114,3 +114,21 @@ Because a maximal-length LFSR cycles through all $2^N - 1$ non-zero states, **ev
 | **Selection Criteria** | Fixed strictly by the mathematical polynomial ($x^8 + x^6 + x^5 + x^4 + 1$). | Arbitrary choice by the designer (any index from `0` to `7`). |
 | **Visibility** | Internal to the module logic. | Primary output interface port. |
 | **Phase Relationship** | Dictates transition dynamics. | Time-shifted copy of any other register bit. |
+
+## 3. Can a Tap-Out Value Be Used as a PRBS Bit?
+
+**Yes, absolutely.** Any tap-out value (or any register bit inside the LFSR) can be used as a PRBS bit.
+
+* **Identical Statistical Properties:** Every single bit position in a maximal-length LFSR generates the exact same pseudo-random sequence with identical randomness and distribution properties.
+* **Time Delay / Phase Shift:** The only difference between taking the PRBS output from a tap-out bit versus a non-tap-out bit is a time delay (phase shift) relative to other bits in the register.
+
+---
+
+## Feature Comparison Matrix
+
+| Feature | Tap-Out Values | PRBS Bit |
+| :--- | :--- | :--- |
+| **Primary Role** | Intermediate registers connected to XOR gates. | System-level single-bit output stream. |
+| **Selection Criteria** | Fixed strictly by the mathematical polynomial ($x^8 + x^6 + x^5 + x^4 + 1$). | Arbitrary choice by the designer (any index from `0` to `7`, including tap positions). |
+| **Visibility** | Internal to the module logic. | Primary output interface port. |
+| **Phase Relationship** | Dictates transition dynamics. | Time-shifted copy of any other register bit. |
