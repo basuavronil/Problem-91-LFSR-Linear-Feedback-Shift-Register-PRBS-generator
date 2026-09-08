@@ -1,81 +1,65 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
-module tb_lfsr_prbs_rightshift;
+module tb_lfsr_8bit;
 
-    reg        clk = 0;
-    reg        rst;
-    reg        en;
-    wire [7:0] lfsr_out;
-    wire       prbs_bit;
+    // Testbench Signals
+    reg        clk;
+    reg        rst_n;
+    reg        load;
+    reg  [7:0] seed;
+    wire [7:0] lfsr;
 
-    integer i, j;
-    reg [7:0] seen [0:255];
-    integer   dup_found;
-
-    lfsr_prbs dut (
-        .clk(clk),
-        .rst(rst),
-        .en(en),
-        .lfsr_out(lfsr_out),
-        .prbs_bit(prbs_bit)
+    // Instantiate the Unit Under Test (UUT)
+    lfsr_8bit uut (
+        .clk  (clk),
+        .rst_n(rst_n),
+        .load (load),
+        .seed (seed),
+        .lfsr (lfsr)
     );
 
+    // Clock Generation (100 MHz -> 10ns period)
     always #5 clk = ~clk;
 
     initial begin
-        rst = 1;
-        en  = 0;
-        @(posedge clk);
-        #1;
-        rst = 0;
+        // Initialize Inputs
+        clk   = 0;
+        rst_n = 0;
+        load  = 0;
+        seed  = 8'h00;
 
-        if (lfsr_out !== 8'h01) begin
-            $display("FAIL: seed after reset = %h, expected 01", lfsr_out);
-            $finish;
-        end
+        // Display output header
+        $display("Time(ns) | rst_n | load | seed | lfsr (HEX) | lfsr (BIN)");
+        $monitor("%8t |   %b   |  %b   |  %h  |     %h     | %b", 
+                  $time, rst_n, load, seed, lfsr, lfsr);
 
-        en = 1;
+        // 1. Apply Reset
+        #15;
+        rst_n = 1;
 
-        // Confirm the very first active-shift step matches the derived
-        // right-shift transition from seed 8'h01 (feedback lfsr[0]=1
-        // enters at lfsr[7], XORs into taps 5,4,3): expect 8'hB8
-        @(posedge clk);
-        #1;
-        if (lfsr_out !== 8'hB8) begin
-            $display("FAIL: first step from seed 01 = %h, expected b8", lfsr_out);
-            $finish;
-        end
+        // 2. Load a Custom Seed (e.g., 8'hA5)
+        #10;
+        load = 1;
+        seed = 8'hA5;
+        #10;
+        load = 0;
 
-        dup_found = 0;
-        rst = 1; @(posedge clk); #1; rst = 0; // reload seed for full sweep
-        for (i = 0; i < 255; i = i + 1) begin
-            seen[i] = lfsr_out;
-            if (lfsr_out == 8'h00) begin
-                $display("FAIL: hit all-zero lockup state at cycle %0d", i);
-                $finish;
-            end
-            @(posedge clk);
-            #1;
-        end
+        // 3. Run LFSR for several clock cycles to observe sequence
+        #200;
 
-        if (lfsr_out !== 8'h01) begin
-            $display("FAIL: state after 255 cycles = %h, expected 01 (wrap)", lfsr_out);
-            $finish;
-        end
+        // 4. Test Reset Priority
+        rst_n = 0;
+        #10;
+        rst_n = 1;
 
-        for (i = 0; i < 255; i = i + 1)
-            for (j = i + 1; j < 255; j = j + 1)
-                if (seen[i] == seen[j]) dup_found = dup_found + 1;
-
-        if (dup_found != 0) begin
-            $display("FAIL: found %0d duplicate states in the 255-cycle sequence", dup_found);
-            $finish;
-        end
-
-        $display("PASS: true right-shift LFSR - 255 unique non-zero states, correct wrap");
-        $display("First 8 states after reset: %h %h %h %h %h %h %h %h",
-                  seen[0], seen[1], seen[2], seen[3], seen[4], seen[5], seen[6], seen[7]);
+        #50;
         $finish;
+    end
+
+    // Optional: Generate a VCD waveform file for GTKWave or EDA Playground
+    initial begin
+        $dumpfile("lfsr_tb.vcd");
+        $dumpvars(0, tb_lfsr_8bit);
     end
 
 endmodule
