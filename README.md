@@ -37,7 +37,25 @@ $$lfsr[6]_{next} = lfsr[5] \oplus lfsr[7] \quad \text{(Tap } x^6\text{)}$$
 $$lfsr[7]_{next} = lfsr[6]$$
 
 ---
+An implementation of an 8-bit Galois Linear Feedback Shift Register (LFSR) shifting left-to-right (MSB to LSB).
 
+## Characteristic Polynomial
+
+$$x^8 + x^6 + x^5 + x^4 + 1$$
+
+## Block Diagram
+
+```text
+LEFTMOST (MSB)                                               RIGHTMOST (LSB)
++---------+---------+---------+---------+---------+---------+---------+---------+
+| lfsr[7] | lfsr[6] | lfsr[5] | lfsr[4] | lfsr[3] | lfsr[2] | lfsr[1] | lfsr[0] |
++---------+---------+---------+---------+---------+---------+---------+---------+
+     |                  |         |         |                           |
+     |                  v         v         v                           v
+     |                [XOR]     [XOR]     [XOR]                         |
+     |                  ^         ^         ^                           |
+     +------------------+---------+---------+---------------------------+
+                        FEEDBACK SIGNAL (lfsr[7])
 ## State Transition Matrix
 
 Starting from a default reset seed of `8'h01`, the module steps through a maximal length sequence of $2^8 - 1 = 255$ unique non-zero states before repeating.
