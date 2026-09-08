@@ -37,7 +37,7 @@ $$lfsr[6]_{next} = lfsr[5] \oplus lfsr[7] \quad \text{(Tap } x^6\text{)}$$
 $$lfsr[7]_{next} = lfsr[6]$$
 
 ---
-An implementation of an 8-bit Galois Linear Feedback Shift Register (LFSR) shifting left-to-right (MSB to LSB).
+An implementation of an 8-bit Galois Linear Feedback Shift Register (LFSR) shifting right (MSB to LSB).
 
 ## Characteristic Polynomial
 
@@ -50,12 +50,15 @@ LEFTMOST (MSB)                                               RIGHTMOST (LSB)
 +---------+---------+---------+---------+---------+---------+---------+---------+
 | lfsr[7] | lfsr[6] | lfsr[5] | lfsr[4] | lfsr[3] | lfsr[2] | lfsr[1] | lfsr[0] |
 +---------+---------+---------+---------+---------+---------+---------+---------+
-     |                  |         |         |                           |
-     |                  v         v         v                           v
-     |                [XOR]     [XOR]     [XOR]                         |
-     |                  ^         ^         ^                           |
-     +------------------+---------+---------+---------------------------+
-                        FEEDBACK SIGNAL (lfsr[7])
+     |          ^         ^         ^                                     ^
+     |          |         |         |                                     |
+     |        [XOR]     [XOR]     [XOR]                                   |
+     |          ^         ^         ^                                     |
+     |          |         |         |                                     |
+     +----------+---------+---------+-------------------------------------+
+                          FEEDBACK SIGNAL (lfsr[7])
+```
+
 ## State Transition Matrix
 
 Starting from a default reset seed of `8'h01`, the module steps through a maximal length sequence of $2^8 - 1 = 255$ unique non-zero states before repeating.
@@ -66,7 +69,7 @@ Starting from a default reset seed of `8'h01`, the module steps through a maxima
 | **1** | `8'h02` (`8'b00000010`) | `0` | Pure Shift Right | `8'h04` |
 | **2** | `8'h04` (`8'b00000100`) | `0` | Pure Shift Right | `8'h08` |
 | **...** | `...` | `...` | `...` | `...` |
-| **Active XOR** | `8'h80` (`8'b10000000`) | `1` | XOR taps `[6,5,4,0]` with `1` | `8'h71` |
+| **Active XOR** | `8'h80` (`8'b10000000`) | `1` | XOR taps `[6,5,4]`, feed `0` | `8'h71` |
 | **Cycle 255** | `8'h80` | `1` | Sequence wraps around | `8'h01` |
 
 ---
@@ -123,15 +126,6 @@ Because a maximal-length LFSR cycles through all $2^N - 1$ non-zero states, **ev
 * **Phase Shift Across Bits:** Tapping `prbs_bit = lfsr[3]` yields the exact same pseudo-random sequence as `lfsr[7]`, shifted/delayed by 4 clock cycles in time.
 
 ---
-
-## Feature Comparison Matrix
-
-| Feature | Tap-Out Values | PRBS Bit |
-| :--- | :--- | :--- |
-| **Primary Role** | Intermediate registers connected to XOR gates. | System-level single-bit output stream. |
-| **Selection Criteria** | Fixed strictly by the mathematical polynomial ($x^8 + x^6 + x^5 + x^4 + 1$). | Arbitrary choice by the designer (any index from `0` to `7`). |
-| **Visibility** | Internal to the module logic. | Primary output interface port. |
-| **Phase Relationship** | Dictates transition dynamics. | Time-shifted copy of any other register bit. |
 
 ## 3. Can a Tap-Out Value Be Used as a PRBS Bit?
 
