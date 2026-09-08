@@ -148,3 +148,56 @@ Because a maximal-length LFSR cycles through all $2^N - 1$ non-zero states, **ev
 | **Selection Criteria** | Fixed strictly by the mathematical polynomial ($x^8 + x^6 + x^5 + x^4 + 1$). | Arbitrary choice by the designer (any index from `0` to `7`, including tap positions). |
 | **Visibility** | Internal to the module logic. | Primary output interface port. |
 | **Phase Relationship** | Dictates transition dynamics. | Time-shifted copy of any other register bit. |
+
+# LFSR Tap Mapping Rule: "Subtract 1" Galois Trick
+
+A simple, memorable rule of thumb to instantly map polynomial terms to Galois LFSR states during **right-shift (MSB to LSB)** operations.
+
+---
+
+## The Rule
+
+For an $N$-bit register defined by polynomial degree $N$, where states are named $S_{N-1}$ down to $S_0$:
+
+$${\large \text{Target State } (S_{k-1}) \leftarrow S_k \oplus \text{Feedback}}$$
+
+### Quick Summary Matrix
+
+| Polynomial Term | Target State Index | Source State Index | Next State Value |
+| :---: | :---: | :---: | :---: |
+| **$x^k$** | **$S_{k-1}$** | **$S_k$** | **$S_k \oplus \text{Feedback}$** |
+
+---
+
+## 3-Step Process
+
+1. **Highest Term ($x^N$):** Defines total register width $N$. The MSB ($S_{N-1}$) generates the **Feedback Signal**.
+2. **Constant Term ($1$ / $x^0$):** Connects feedback directly back via wraparound.
+3. **Middle Terms ($x^k$):** Subtract 1 from the exponent $k$ to identify the target state index ($S_{k-1}$).
+
+---
+
+## Applied Example
+
+For polynomial $P(x) = x^8 + x^6 + x^5 + x^4 + 1$:
+
+* **$x^8$ (Degree $N=8$):** States are $S_7$ down to $S_0$. Feedback comes from $S_7$.
+* **$x^6$ Tap ($k=6$):** Target is $S_{6-1} = S_5$. 
+  $$\text{XOR Output} \longrightarrow S_5 = S_6 \oplus \text{Feedback}$$
+* **$x^5$ Tap ($k=5$):** Target is $S_{5-1} = S_4$. 
+  $$\text{XOR Output} \longrightarrow S_4 = S_5 \oplus \text{Feedback}$$
+* **$x^4$ Tap ($k=4$):** Target is $S_{4-1} = S_3$. 
+  $$\text{XOR Output} \longrightarrow S_3 = S_4 \oplus \text{Feedback}$$
+
+---
+
+## Visual Signal Flow
+
+```text
+       S_k (Source State)
+        |
+        v
+      [XOR] <--- Feedback Signal (S_{N-1})
+        |
+        v
+      S_{k-1} (Target State)
