@@ -202,14 +202,4 @@ For polynomial $P(x) = x^8 + x^6 + x^5 + x^4 + 1$:
         v
       S_{k-1} (Target State)
 
-
-## 1. Core Operating Principle
-
-A Galois LFSR operates on a simple conditional shifting rule:
-
-* **If Feedback Bit = 1:** Apply XOR gates at the tap locations while shifting right[cite: 2].
-* **If Feedback Bit = 0:** Perform a pure circular right shift (no XOR toggling)[cite: 2].
-
-$$\text{Operation} = \begin{cases} \text{Right Shift} \oplus \text{Taps}, & \text{if } \text{Feedback} = 1 \\ \text{Circular Right Shift}, & \text{if } \text{Feedback} = 0 \end{cases}$$
-
 ---
