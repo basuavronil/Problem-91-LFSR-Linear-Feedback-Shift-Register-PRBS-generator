@@ -203,3 +203,11 @@ For polynomial $P(x) = x^8 + x^6 + x^5 + x^4 + 1$:
       S_{k-1} (Target State)
 
 ---
+```
+
+# Output
+## Waveform 
+<img width="932" height="231" alt="image" src="https://github.com/user-attachments/assets/13d7ac5e-1c16-4ed6-98c9-e934b44667ff" />
+
+## Simulation terminal 
+<img width="426" height="324" alt="image" src="https://github.com/user-attachments/assets/5b5faf9b-61b0-419d-a7c4-6ffbf83e2a61" />
