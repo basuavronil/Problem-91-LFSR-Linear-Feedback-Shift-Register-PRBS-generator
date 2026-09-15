@@ -1,39 +1,49 @@
-module lfsr_8bit (
-    input  wire       clk,
-    input  wire       rst_n,
-    input  wire       load,
-    input  wire [7:0] seed,
-    output reg  [7:0] lfsr
+// Code your design here
+// x^8 + x^2 + x^1 + 1
+module prbs(
+  input clk, rst, load,
+  input [7:0] initial_seed,
+  output prbs_out 
 );
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            lfsr <= 8'h01; // Non-zero reset state
-        end else if (load) begin
-            lfsr <= seed;
-        end else begin
-            if (lfsr[7]) begin
-                // Feedback = 1: Shift right and apply XOR taps (x^6, x^5, x^4)
-                lfsr[7] <= lfsr[0];
-                lfsr[6] <= lfsr[7];
-                lfsr[5] <= lfsr[6] ^ 1'b1;
-                lfsr[4] <= lfsr[5] ^ 1'b1;
-                lfsr[3] <= lfsr[4] ^ 1'b1;
-                lfsr[2] <= lfsr[3];
-                lfsr[1] <= lfsr[2];
-                lfsr[0] <= lfsr[1];
-            end else begin
-                // Feedback = 0: Pure right shift without XOR toggling
-                lfsr[7] <= lfsr[0];
-                lfsr[6] <= lfsr[7];
-                lfsr[5] <= lfsr[6];
-                lfsr[4] <= lfsr[5];
-                lfsr[3] <= lfsr[4];
-                lfsr[2] <= lfsr[3];
-                lfsr[1] <= lfsr[2];
-                lfsr[0] <= lfsr[1];
+  reg [7:0] lfsr;
+  wire feedback;
+  assign feedback = lfsr[0];
+  always@(posedge clk or negedge rst)
+    begin
+      if (!rst) 
+        lfsr <= 8'd1;
+      else if (load)
+        lfsr <= initial_seed;
+      else 
+        begin
+          if (feedback)
+            begin
+              lfsr[7] <= lfsr[0];
+              lfsr[6] <= lfsr[7];
+              lfsr[5] <= lfsr[6];
+              lfsr[4] <= lfsr[5];
+              lfsr[3] <= lfsr[2];
+              lfsr[2] <= lfsr[3];
+              lfsr[1] <= lfsr[2] ^ feedback;
+              lfsr[0] <= lfsr[1] ^ feedback;
+            end
+          else 
+            begin
+              lfsr[7] <= lfsr[0];
+              lfsr[6] <= lfsr[7];
+              lfsr[5] <= lfsr[6];
+              lfsr[4] <= lfsr[5];
+              lfsr[3] <= lfsr[2];
+              lfsr[2] <= lfsr[3];
+              lfsr[1] <= lfsr[2];
+              lfsr[0] <= lfsr[1];
             end
         end
     end
-
-endmodule
+  assign prbs_out = lfsr[0];
+endmodule 
+                     
+            
+          
+            
+                 
