@@ -1,5 +1,5 @@
 // Code your design here
-// x^8 + x^2 + x^1 + 1  
+// x^8 + x^2 + x^1 + 1     
 module prbs(     
   input clk, rst, load,
   input [7:0] initial_seed,
