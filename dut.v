@@ -5,7 +5,7 @@ module prbs(
   input [7:0] initial_seed,
   output prbs_out 
 );
-  reg [7:0] lfsr;
+  reg [7:0] lfsr;  
   wire feedback;
   assign feedback = lfsr[0];
   always@(posedge clk or negedge rst)
